@@ -4,11 +4,21 @@
     <h2>Hello message: {{ hello }}</h2>
     <button @click="getHello">Get Hello</button>
     <button @click="getHelloAsync">Get Hello Async</button>
-    <h2>Cats:</h2>
+    <h2>Books:</h2>
     <ul>
-      <li v-for="cat in cats" v-bind:key="cat.id">{{ cat.name }}</li>
+      <li v-for="book in books" v-bind:key="book.id">
+        {{ book.title }} ({{ book.year }})
+      </li>
     </ul>
-    <button @click="getCatsAsync">Get Cats Async</button>
+    <button @click="getBooksAsync">Get Books Async</button>
+    <h2>Add Book</h2>
+    <label for="title">Title: </label>
+    <input type="text" id="title" v-model="title" />
+    <br />
+    <label for="year">Year: </label>
+    <input type="text" id="year" v-model="year" />
+    <br />
+    <button @click="addBook">Add Book</button>
   </div>
 </template>
 
@@ -20,16 +30,6 @@ export default {
   props: {
     msg: String,
   },
-  async created() {
-    console.info("created");
-  },
-  // apollo: {
-  //   hello: gql`
-  //     query {
-  //       hello
-  //     }
-  //   `,
-  // },
   methods: {
     getHello() {
       this.$apollo
@@ -58,27 +58,49 @@ export default {
       console.info(hello);
       this.hello = hello;
     },
-    async getCatsAsync() {
+    async getBooksAsync() {
       const {
-        data: { cats },
+        data: { books },
       } = await this.$apollo.query({
         query: gql`
           query {
-            cats {
+            books {
               id
-              name
+              title
+              year
             }
           }
         `,
       });
-      console.info(cats);
-      this.cats = cats;
+      console.info(books);
+      this.books = books;
+    },
+    async addBook() {
+      console.info(`Adding book ${this.title} (${this.year})...`);
+      const {
+        data: { book },
+      } = await this.$apollo.mutate({
+        mutation: gql`
+          mutation ($year: Int!, $title: String!) {
+            book: createBook(year: $year, title: $title) {
+              title
+              year
+            }
+          }
+        `,
+        variables: {
+          year: Number(this.year),
+          title: this.title,
+        },
+        error: (error) => console.error(error),
+      });
+      console.info("Book added", book);
     },
   },
   data() {
     return {
       hello: "",
-      cats: [],
+      books: [],
     };
   },
 };

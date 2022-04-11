@@ -1,19 +1,19 @@
-const Cat = require("./models/Cat");
+const Book = require("./models/Book");
 
 const resolvers = {
   Query: {
     hello: () => "hello",
-    name: () => "James",
-    cats: async () => await Cat.find({}),
-    findCat: async (_, { name }) => await Cat.findOne({ name: name }),
+    name: () => "Jacob J",
+    books: async () => await Book.find({}),
+    findBook: async (_, { title }) => await Book.findOne({ title: title }),
   },
   Mutation: {
-    createCat: async (_, { name }) => {
-      console.info("Creating cat named", name, "...");
-      const kitty = new Cat({ name });
-      await kitty.save();
-      console.info("Cat created", kitty);
-      return kitty;
+    createBook: async (_, { title, year }) => {
+      console.info(`Creating book ${title} (${year})...`);
+      const book = new Book({ title, year });
+      await book.save();
+      console.info("Book created", book);
+      return book;
     },
   },
 };

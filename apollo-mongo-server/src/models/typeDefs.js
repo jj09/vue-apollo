@@ -4,15 +4,16 @@ const typeDefs = gql`
   type Query {
     hello: String!
     name: String
-    cats: [Cat!]!
-    findCat(name: String!): Cat
+    books: [Book!]!
+    findBook(title: String!): Book
   }
-  type Cat {
+  type Book {
     id: ID!
-    name: String!
+    title: String!
+    year: Int!
   }
   type Mutation {
-    createCat(name: String!): Cat!
+    createBook(title: String!, year: Int!): Book!
   }
 `;
 
