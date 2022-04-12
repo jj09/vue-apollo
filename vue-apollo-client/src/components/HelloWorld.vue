@@ -56,7 +56,7 @@ export default {
         `,
       });
       console.info(hello);
-      this.hello = hello;
+      this.hello = hello + " async";
     },
     async getBooksAsync() {
       const {
