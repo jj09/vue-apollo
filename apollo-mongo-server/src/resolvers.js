@@ -15,6 +15,15 @@ const resolvers = {
       console.info("Book created", book);
       return book;
     },
+    deleteBook: async (_, { id }) => {
+      const book = await Book.findOne({ _id: id });
+      console.info(`Deleting book ${book.title} (${book.year})...`);
+      const result = await Book.deleteOne({
+        _id: id,
+      });
+      console.info("Book deleted", result);
+      return result.acknowledged && result.deletedCount === 1;
+    },
   },
 };
 

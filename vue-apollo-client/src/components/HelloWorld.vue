@@ -8,6 +8,7 @@
     <ul>
       <li v-for="book in books" v-bind:key="book.id">
         {{ book.title }} ({{ book.year }})
+        <button @click="deleteBook(book.id)">Delete</button>
       </li>
     </ul>
     <button @click="getBooksAsync">Get Books Async</button>
@@ -95,6 +96,25 @@ export default {
         error: (error) => console.error(error),
       });
       console.info("Book added", book);
+      // TODO: refresh UI, update Apollo Store
+    },
+    async deleteBook(id) {
+      console.info(`Deleting book ${id})...`);
+      const {
+        data: { deleteBook },
+      } = await this.$apollo.mutate({
+        mutation: gql`
+          mutation ($id: ID!) {
+            deleteBook(id: $id)
+          }
+        `,
+        variables: {
+          id: id,
+        },
+        error: (error) => console.error(error),
+      });
+      console.info("Book deleted", deleteBook);
+      // TODO: refresh UI, update Apollo Store
     },
   },
   data() {
