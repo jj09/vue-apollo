@@ -22,7 +22,11 @@ const resolvers = {
         _id: id,
       });
       console.info("Book deleted", result);
-      return result.acknowledged && result.deletedCount === 1;
+      if (result.acknowledged && result.deletedCount === 1) {
+        return id;
+      }
+
+      return null;
     },
   },
 };

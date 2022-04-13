@@ -26,6 +26,16 @@
 <script>
 import gql from "graphql-tag";
 
+const GET_BOOKS_QUERY = gql`
+  query {
+    books {
+      id
+      title
+      year
+    }
+  }
+`;
+
 export default {
   name: "HelloWorld",
   props: {
@@ -63,15 +73,7 @@ export default {
       const {
         data: { books },
       } = await this.$apollo.query({
-        query: gql`
-          query {
-            books {
-              id
-              title
-              year
-            }
-          }
-        `,
+        query: GET_BOOKS_QUERY,
       });
       console.info(books);
       this.books = books;
@@ -84,6 +86,7 @@ export default {
         mutation: gql`
           mutation ($year: Int!, $title: String!) {
             book: createBook(year: $year, title: $title) {
+              id
               title
               year
             }
@@ -93,13 +96,29 @@ export default {
           year: Number(this.year),
           title: this.title,
         },
+        update: (store, { data: { book } }) => {
+          console.info("created", book.title, book.year);
+          console.info("store", store);
+
+          const data = store.readQuery({
+            query: GET_BOOKS_QUERY,
+          });
+
+          console.info("data before", data);
+          console.info("data after", { books: [...data.books, book] });
+
+          store.writeQuery({
+            query: GET_BOOKS_QUERY,
+            data: { books: [...data.books, book] },
+          });
+        },
         error: (error) => console.error(error),
       });
       console.info("Book added", book);
-      // TODO: refresh UI, update Apollo Store
+      await this.getBooksAsync();
     },
     async deleteBook(id) {
-      console.info(`Deleting book ${id})...`);
+      console.info(`Deleting book ${id}...`);
       const {
         data: { deleteBook },
       } = await this.$apollo.mutate({
@@ -111,10 +130,27 @@ export default {
         variables: {
           id: id,
         },
+        update: (store, { data: { deleteBook } }) => {
+          console.info("deleted", deleteBook);
+          console.info("store", store);
+
+          const data = store.readQuery({
+            query: GET_BOOKS_QUERY,
+          });
+
+          console.info("data before", data);
+          const books = data.books.filter((x) => x.id !== deleteBook);
+          console.info("data after", { books: books });
+
+          store.writeQuery({
+            query: GET_BOOKS_QUERY,
+            data: { books: books },
+          });
+        },
         error: (error) => console.error(error),
       });
       console.info("Book deleted", deleteBook);
-      // TODO: refresh UI, update Apollo Store
+      await this.getBooksAsync();
     },
   },
   data() {
