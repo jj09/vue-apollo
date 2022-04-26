@@ -20,6 +20,6 @@ vue-apollo-client:
 ## TODO
 
 - add mutations:
-  - create new Book
-  - delete Book
-  - update Book
+  [x] create new Book
+  [x] delete Book
+  [] update Book
