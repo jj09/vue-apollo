@@ -15,6 +15,24 @@ const resolvers = {
       console.info("Book created", book);
       return book;
     },
+    editBook: async (_, { id, title, year }) => {
+      console.info(`Editing book ${id}: ${title} (${year})...`);
+      const result = await Book.update(
+        { _id: id },
+        {
+          $set: {
+            title: title,
+            year: year,
+          },
+        }
+      );
+      console.info("Book updated", result);
+      return {
+        id: id,
+        title: title,
+        year: year,
+      };
+    },
     deleteBook: async (_, { id }) => {
       const book = await Book.findOne({ _id: id });
       console.info(`Deleting book ${book.title} (${book.year})...`);
