@@ -17,7 +17,7 @@ const resolvers = {
     },
     editBook: async (_, { id, title, year }) => {
       console.info(`Editing book ${id}: ${title} (${year})...`);
-      const result = await Book.update(
+      const result = await Book.updateOne(
         { _id: id },
         {
           $set: {

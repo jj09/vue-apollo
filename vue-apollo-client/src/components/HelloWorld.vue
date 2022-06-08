@@ -6,8 +6,26 @@
     <button @click="getHelloAsync">Get Hello Async</button>
     <h2>Books:</h2>
     <ul>
-      <li v-for="book in books" v-bind:key="book.id">
-        {{ book.title }} ({{ book.year }})
+      <li
+        v-for="book in books"
+        v-bind:key="book.id"
+        style="display: block; margin: 10px"
+      >
+        <span v-if="isEditingBook(book.id)">
+          <label for="edittitle">Title: </label>
+          <input type="text" id="edittitle" v-model="edittitle" />
+          &nbsp;
+          <label for="edityear">Year: </label>
+          &nbsp;
+          <input type="text" id="edityear" v-model="edityear" />
+          &nbsp;
+          <button @click="saveBook">Save</button>
+        </span>
+        <span v-else>
+          {{ book.title }} ({{ book.year }})
+          <button @click="editBook(book.id, book.title, book.year)">Edit</button
+          >&nbsp;
+        </span>
         <button @click="deleteBook(book.id)">Delete</button>
       </li>
     </ul>
@@ -15,10 +33,11 @@
     <h2>Add Book</h2>
     <label for="title">Title: </label>
     <input type="text" id="title" v-model="title" />
-    <br />
+    &nbsp;
     <label for="year">Year: </label>
+    &nbsp;
     <input type="text" id="year" v-model="year" />
-    <br />
+    &nbsp;
     <button @click="addBook">Add Book</button>
   </div>
 </template>
@@ -117,6 +136,65 @@ export default {
       console.info("Book added", book);
       await this.getBooksAsync();
     },
+    editBook(id, title, year) {
+      this.editingBookId = id;
+      this.edittitle = title;
+      this.edityear = Number(year);
+    },
+    isEditingBook(id) {
+      return this.editingBookId === id;
+    },
+    async saveBook() {
+      console.info(
+        `Saving book ${this.editingBookId}: ${this.edittitle} (${this.edityear})...`
+      );
+      const {
+        data: { editBook },
+      } = await this.$apollo.mutate({
+        mutation: gql`
+          mutation ($id: ID!, $title: String!, $year: Int!) {
+            editBook(id: $id, title: $title, year: $year) {
+              id
+              title
+              year
+            }
+          }
+        `,
+        variables: {
+          id: this.editingBookId,
+          title: this.edittitle,
+          year: Number(this.edityear),
+        },
+        update: (store, { data: { editBook } }) => {
+          console.info("edited", editBook);
+          console.info("store", store);
+
+          const data = store.readQuery({
+            query: GET_BOOKS_QUERY,
+          });
+
+          console.info("data before", data);
+          const books = data.books.map((x) =>
+            x.id !== this.editingBookId
+              ? x
+              : { id: x.id, title: this.edittitle, year: this.edityear }
+          );
+          console.info("data after", { books: books });
+
+          store.writeQuery({
+            query: GET_BOOKS_QUERY,
+            data: { books: books },
+          });
+        },
+        error: (error) => console.error(error),
+      });
+      console.info("Book edited", editBook);
+      await this.getBooksAsync();
+
+      this.editingBookId = null;
+      this.edittitle = null;
+      this.edityear = null;
+    },
     async deleteBook(id) {
       console.info(`Deleting book ${id}...`);
       const {
@@ -157,6 +235,9 @@ export default {
     return {
       hello: "",
       books: [],
+      editingBookId: null,
+      title: "",
+      year: "",
     };
   },
 };
