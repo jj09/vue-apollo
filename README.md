@@ -3,12 +3,20 @@
 ## Run
 
 apollo-mongo-server:
-`npm start`
+
+```
+cd apollo-mongo-server
+npm start
+```
 
 vue-apollo-client:
-`npm run serve`
 
-## references
+```
+cd vue-apollo-client
+npm run serve
+```
+
+## References
 
 - [Build a GraphQL Server with Node.js and MongoDB](https://www.youtube.com/watch?v=YFkJGEefgU8)
 - [Apollo docs](https://www.apollographql.com/docs/apollo-server/getting-started/)
@@ -17,9 +25,8 @@ vue-apollo-client:
 - https://github.com/romucci/boilerplate-vue-apollo-graphql-mongodb
 - [Syncing backend Apollo/GraphQL updates with Vue UI](https://www.howtographql.com/vue-apollo/6-more-mutations-and-updating-the-store/)
 
-## TODO
+## TODOs
 
-- add mutations:
-  [x] create new Book
-  [x] delete Book
-  [] update Book
+- [x] create new Book mutation
+- [x] delete Book mutation
+- [x] update Book mutation
