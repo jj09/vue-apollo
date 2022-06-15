@@ -8,7 +8,7 @@ const cache = new InMemoryCache();
 
 const apolloClient = new ApolloClient({
   cache,
-  uri: "http://localhost:4000",
+  uri: "http://localhost:4000", // for prod change to '/api/'
 });
 
 const apolloProvider = createApolloProvider({
