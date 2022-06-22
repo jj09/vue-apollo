@@ -150,15 +150,26 @@ resource "aws_instance" "web-server-instance" {
     user_data = <<EOF
                 #!/bin/bash
                 yum update -y
+                echo 'Installing unzip...'
+                yum install unzip
                 echo 'Installing Node v16...'
-                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+                curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash # this does not work
                 . ~/.nvm/nvm.sh
                 nvm install 16
                 node -e "console.log('Running Node.js ' + process.version)"
-                echo 'Installing nodemon...'
-                npm i -g nodemon
-                echo 'Installing unzip...'
-                yum install unzip
+                echo 'Installing MongoDB...'
+                chmod 777 /etc/yum.repos.d/
+                echo $'[mongodb-org-5.0]\nname=MongoDB Repository\nbaseurl=https://repo.mongodb.org/yum/amazon/2/mongodb-org/5.0/x86_64/\ngpgcheck=0\nenabled=1' > /etc/yum.repos.d/mongodb-org-5.0.repo
+                chmod 755 /etc/yum.repos.d/
+                yum install -y mongodb-org
+                systemctl start mongod
+                systemctl enable mongod
+                systemctl status mongod
+                echo 'Installing PM2...'
+                npm install -g pm2
+                pm2 startup systemd
+                echo 'Installing nginx...'
+                amazon-linux-extras install nginx1 -y
                 EOF
     tags = {
         Name = "web-server"
@@ -201,6 +212,10 @@ output "server_id" {
 
 ## NEEDED
 
+# etc
+# sudo yum install unzip
+# unzip <FILE_NAME>
+
 # install node: https://github.com/nvm-sh/nvm
 # echo 'Installing Node v16...'
 # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
@@ -223,23 +238,36 @@ output "server_id" {
 # npm install -g pm2
 # pm2 startup systemd
 
+# install nginx
+# echo 'Installing nginx...'
+# sudo amazon-linux-extras install nginx1 -y
+
+# # scp: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
+# echo 'Copy files...'
+# sudo chmod 777 /opt
+# sudo chmod 777 /etc/nginx/nginx.conf
+
+# echo 'Copy server files...'
+# scp -i /Users/jj09/dev/tf-aws/terraform-project.pem -r /Users/jj09/dev/vue-apollo/apollo-mongo-server.zip ec2-user@44.196.200.145:/opt/apollo-mongo-server.zip
+# echo 'Copy client files...'
+# scp -i /Users/jj09/dev/tf-aws/terraform-project.pem -r /Users/jj09/dev/vue-apollo/html.zip ec2-user@44.196.200.145:/opt/html.zip
+# # copy config file/configure nginx (change server part only): https://jasonwatmore.com/post/2019/12/14/vuejs-nodejs-on-aws-how-to-deploy-a-mevn-stack-app-to-amazon-ec2
+# scp -i /Users/jj09/dev/tf-aws/terraform-project.pem -r /Users/jj09/dev/vue-apollo/aws/nginx.conf ec2-user@44.196.200.145:/etc/nginx/nginx.conf
+
+# sudo chmod 755 /etc/nginx/nginx.conf
+# sudo chmod 755 /opt
+
+# echo 'Unzip files...'
+# cd /opt/
+# unzip /opt/apollo-mongo-server.zip
+# unzip /opt/html.zip
+# mv dist html
+
+# echo 'Start Apollo server...'
 # cd apollo-mongo-server
 # npm i
 # pm2 start src/index.js
 
-# install nginx
-# sudo amazon-linux-extras install nginx1 -y
-# copy config file/configure nginx (change server part only): https://jasonwatmore.com/post/2019/12/14/vuejs-nodejs-on-aws-how-to-deploy-a-mevn-stack-app-to-amazon-ec2
-# helpful commands: https://phoenixnap.com/kb/nginx-start-stop-restart
+# # nginx commands: https://phoenixnap.com/kb/nginx-start-stop-restart
+# echo 'Restart nginx...'
 # sudo systemctl restart nginx
-
-# SSH to EC2: ssh -i terraform-project.pem ec2-user@<PUBLIC_IP>
-# scp: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html
-# sudo chmod 777 /opt
-# copy folder: scp -i /Users/jj09/dev/tf-aws/terraform-project.pem -r ./* ec2-user@3.222.100.240:/opt/html
-# copy file: scp -i /Users/jj09/dev/tf-aws/terraform-project.pem -r html.zip ec2-user@44.206.220.122:/opt/html.zip
-# sudo chmod 755 /opt
-
-# etc
-# sudo yum install unzip
-# unzip <FILE_NAME>
